@@ -179,11 +179,32 @@ class IoTScannerGUI:
         user_entry = ttk.Entry(login_card, width=40)
         user_entry.pack(fill=tk.X, ipady=8, pady=(0, 20))
         
-        # Password
+       # Password
         tk.Label(login_card, text="Password", font=('Segoe UI', 11, 'bold'),
                 bg=colors['card_bg'], fg=colors['fg']).pack(anchor=tk.W, pady=(0, 8))
-        pass_entry = ttk.Entry(login_card, width=40, show="•")
-        pass_entry.pack(fill=tk.X, ipady=8, pady=(0, 20))
+        
+        # Frame to hold the entry and toggle button side-by-side
+        pass_frame = tk.Frame(login_card, bg=colors['card_bg'])
+        pass_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        pass_entry = ttk.Entry(pass_frame, show="•")
+        pass_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=8)
+        
+        # Function to toggle the visibility and icon
+        def toggle_password():
+            if pass_entry.cget('show') == '•':
+                pass_entry.config(show='')
+                toggle_btn.config(text='🙈')
+            else:
+                pass_entry.config(show='•')
+                toggle_btn.config(text='👁️')
+                
+        # The visibility toggle button styled to match theme
+        toggle_btn = tk.Button(pass_frame, text="👁️", font=('Segoe UI', 11), 
+                              bg=colors['bg_tertiary'], fg=colors['fg'], 
+                              relief='flat', cursor="hand2", command=toggle_password,
+                              activebackground=colors['bg_secondary'])
+        toggle_btn.pack(side=tk.RIGHT, padx=(5, 0), ipadx=8, ipady=5)
         
         # Remember and links
         options_frame = tk.Frame(login_card, bg=colors['card_bg'])
@@ -291,16 +312,40 @@ class IoTScannerGUI:
         email_ent.pack(fill=tk.X, ipady=8, pady=(0, 15))
         
         # Password
+        # Universal toggle function for this page
+        def toggle_signup_vis(entry, btn):
+            if entry.cget('show') == '•':
+                entry.config(show='')
+                btn.config(text='🙈')
+            else:
+                entry.config(show='•')
+                btn.config(text='👁️')
+
+        # Password
         tk.Label(signup_card, text="Password", font=('Segoe UI', 11, 'bold'),
                 bg=colors['card_bg'], fg=colors['fg']).pack(anchor=tk.W, pady=(0, 8))
-        pass_ent = ttk.Entry(signup_card, width=40, show="•")
-        pass_ent.pack(fill=tk.X, ipady=8, pady=(0, 15))
+        pass_frame = tk.Frame(signup_card, bg=colors['card_bg'])
+        pass_frame.pack(fill=tk.X, pady=(0, 15))
+        
+        pass_ent = ttk.Entry(pass_frame, show="•")
+        pass_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=8)
+        pass_btn = tk.Button(pass_frame, text="👁️", font=('Segoe UI', 11), bg=colors['bg_tertiary'], 
+                            fg=colors['fg'], relief='flat', cursor="hand2", activebackground=colors['bg_secondary'])
+        pass_btn.config(command=lambda: toggle_signup_vis(pass_ent, pass_btn))
+        pass_btn.pack(side=tk.RIGHT, padx=(5, 0), ipadx=8, ipady=5)
         
         # Confirm Password
         tk.Label(signup_card, text="Confirm Password", font=('Segoe UI', 11, 'bold'),
                 bg=colors['card_bg'], fg=colors['fg']).pack(anchor=tk.W, pady=(0, 8))
-        conf_ent = ttk.Entry(signup_card, width=40, show="•")
-        conf_ent.pack(fill=tk.X, ipady=8, pady=(0, 25))
+        conf_frame = tk.Frame(signup_card, bg=colors['card_bg'])
+        conf_frame.pack(fill=tk.X, pady=(0, 25))
+        
+        conf_ent = ttk.Entry(conf_frame, show="•")
+        conf_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=8)
+        conf_btn = tk.Button(conf_frame, text="👁️", font=('Segoe UI', 11), bg=colors['bg_tertiary'], 
+                            fg=colors['fg'], relief='flat', cursor="hand2", activebackground=colors['bg_secondary'])
+        conf_btn.config(command=lambda: toggle_signup_vis(conf_ent, conf_btn))
+        conf_btn.pack(side=tk.RIGHT, padx=(5, 0), ipadx=8, ipady=5)
         
         def do_signup():
             username = user_ent.get().strip()
