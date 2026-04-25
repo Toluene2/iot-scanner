@@ -1078,20 +1078,53 @@ Usage Restrictions:
         tk.Label(pwd_card, text="🔐 CHANGE PASSWORD", font=('Segoe UI', 11, 'bold'),
                 bg=colors['card_bg'], fg=colors['fg_secondary']).pack(anchor=tk.W, pady=(0, 15))
         
+       # Universal toggle function for settings
+        def toggle_settings_vis(entry, btn):
+            if entry.cget('show') == '•':
+                entry.config(show='')
+                btn.config(text='🙈')
+            else:
+                entry.config(show='•')
+                btn.config(text='👁️')
+
+        # Current Password
         tk.Label(pwd_card, text="Current Password:", font=('Segoe UI', 10),
                 bg=colors['card_bg'], fg=colors['fg']).pack(anchor=tk.W, pady=(0, 5))
-        current_pwd_ent = ttk.Entry(pwd_card, width=50, show='*')
-        current_pwd_ent.pack(fill=tk.X, ipady=6, pady=(0, 15))
+        cp_frame = tk.Frame(pwd_card, bg=colors['card_bg'])
+        cp_frame.pack(fill=tk.X, pady=(0, 15))
         
+        current_pwd_ent = ttk.Entry(cp_frame, show='•')
+        current_pwd_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6)
+        cp_btn = tk.Button(cp_frame, text="👁️", font=('Segoe UI', 10), bg=colors['bg_tertiary'], 
+                          fg=colors['fg'], relief='flat', cursor="hand2", activebackground=colors['bg_secondary'])
+        cp_btn.config(command=lambda: toggle_settings_vis(current_pwd_ent, cp_btn))
+        cp_btn.pack(side=tk.RIGHT, padx=(5, 0), ipadx=8, ipady=3)
+        
+        # New Password
         tk.Label(pwd_card, text="New Password:", font=('Segoe UI', 10),
                 bg=colors['card_bg'], fg=colors['fg']).pack(anchor=tk.W, pady=(0, 5))
-        new_pwd_ent = ttk.Entry(pwd_card, width=50, show='*')
-        new_pwd_ent.pack(fill=tk.X, ipady=6, pady=(0, 15))
+        np_frame = tk.Frame(pwd_card, bg=colors['card_bg'])
+        np_frame.pack(fill=tk.X, pady=(0, 15))
         
+        new_pwd_ent = ttk.Entry(np_frame, show='•')
+        new_pwd_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6)
+        np_btn = tk.Button(np_frame, text="👁️", font=('Segoe UI', 10), bg=colors['bg_tertiary'], 
+                          fg=colors['fg'], relief='flat', cursor="hand2", activebackground=colors['bg_secondary'])
+        np_btn.config(command=lambda: toggle_settings_vis(new_pwd_ent, np_btn))
+        np_btn.pack(side=tk.RIGHT, padx=(5, 0), ipadx=8, ipady=3)
+        
+        # Confirm Password
         tk.Label(pwd_card, text="Confirm Password:", font=('Segoe UI', 10),
                 bg=colors['card_bg'], fg=colors['fg']).pack(anchor=tk.W, pady=(0, 5))
-        confirm_pwd_ent = ttk.Entry(pwd_card, width=50, show='*')
-        confirm_pwd_ent.pack(fill=tk.X, ipady=6, pady=(0, 20))
+        confp_frame = tk.Frame(pwd_card, bg=colors['card_bg'])
+        confp_frame.pack(fill=tk.X, pady=(0, 20))
+        
+        confirm_pwd_ent = ttk.Entry(confp_frame, show='•')
+        confirm_pwd_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6)
+        confp_btn = tk.Button(confp_frame, text="👁️", font=('Segoe UI', 10), bg=colors['bg_tertiary'], 
+                             fg=colors['fg'], relief='flat', cursor="hand2", activebackground=colors['bg_secondary'])
+        confp_btn.config(command=lambda: toggle_settings_vis(confirm_pwd_ent, confp_btn))
+        confp_btn.pack(side=tk.RIGHT, padx=(5, 0), ipadx=8, ipady=3)
         
         def change_password():
             current_pwd = current_pwd_ent.get()
