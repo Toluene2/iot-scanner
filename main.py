@@ -1,7 +1,12 @@
 """
 Main Scanner Orchestrator - Coordinates all modules and generates reports
 """
-
+import sys
+import os
+import shutil
+import tkinter as tk
+import tkinter.messagebox as messagebox
+import webbrowser
 import logging
 import argparse
 import sys
@@ -12,6 +17,7 @@ import ipaddress
 import json
 from typing import Callable, Optional
 from pathlib import Path
+from typing import Dict, List, Optional, Callable, Tuple, Any
 
 # Add project root to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -21,7 +27,38 @@ from modules.fingerprinting import FingerprintingModule
 from modules.assessment import VulnerabilityAssessmentModule
 from utils.report_generator import ReportGenerator
 from utils.config import SCAN_CONFIG, LOG_CONFIG
+# Import your GUI class
+from gui import IoTScannerGUI
 
+def check_nmap_installed():
+    """Checks if Nmap is installed on the host system."""
+    if shutil.which("nmap") is None:
+        # Create a hidden Tkinter root just to show the error box cleanly
+        root = tk.Tk()
+        root.withdraw() 
+        
+        response = messagebox.askyesno(
+            "Missing Dependency: Nmap",
+            "IoT Security Guard requires the core Nmap software to perform network scans, but it was not found on your system.\n\n"
+            "Would you like to download and install Nmap now?"
+        )
+        
+        if response:
+            # Opens the default web browser to the official Nmap download page
+            webbrowser.open("https://nmap.org/download.html")
+            
+        messagebox.showinfo("Setup Required", "Please install Nmap, then restart IoT Security Guard.")
+        return False
+    return True
+
+if __name__ == "__main__":
+    # 1. Run the dependency check FIRST
+    if check_nmap_installed():
+        # 2. Create the Tkinter window and pass it to the GUI
+        root = tk.Tk()
+        app = IoTScannerGUI(root)
+        root.mainloop()
+        
 # Configure logging
 logging.basicConfig(
     level=LOG_CONFIG['level'],
@@ -171,7 +208,7 @@ class IoTVulnerabilityScanner:
         logger.info(f"Target filtering: {len(hosts)} discovered -> {len(filtered)} after filtering")
         return filtered
 
-    def run_scan(self, stop_event: threading.Event = None, progress_callback: Callable[[int, str], None] = None) -> dict:
+    def run_scan(self, stop_event: Optional[threading.Event] = None, progress_callback: Optional[Callable[[int, str], None]] = None):
         """
         Execute complete vulnerability scanning workflow with multi-stage pipeline.
         
@@ -470,7 +507,7 @@ class IoTVulnerabilityScanner:
         
         print("=" * 60)
 
-    def export_json_results(self, results: dict, filename: str = None) -> str:
+    def export_json_results(self, results: dict, filename: Optional[str] = None) -> Optional[str]:
         """
         Export scan results as JSON for integration with other tools.
         
