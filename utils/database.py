@@ -291,8 +291,30 @@ class ScannerDB:
                 FROM scans WHERE user_id = ?
             """, (user_id,))
             stats = cursor.fetchone()
-            # If no scans, stats will have Nones or be (0, None, ...)
             return {
+                'total_scans': stats[0] or 0,
+                'total_devices': stats[1] or 0,
+                'total_high': stats[2] or 0,
+                'total_med': stats[3] or 0,
+                'total_low': stats[4] or 0
+            }
+
+    def get_system_dashboard_summary(self):
+        """Get global platform statistics for the Admin dashboard"""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT COUNT(*), SUM(device_count), SUM(vuln_high), SUM(vuln_med), SUM(vuln_low)
+                FROM scans
+            """)
+            stats = cursor.fetchone()
+            
+            cursor.execute("SELECT COUNT(*) FROM users")
+            user_count = cursor.fetchone()[0]
+            
+            return {
+                'total_users': user_count,
                 'total_scans': stats[0] or 0,
                 'total_devices': stats[1] or 0,
                 'total_high': stats[2] or 0,

@@ -4,6 +4,8 @@ import threading
 import logging
 import os
 import json
+import platform
+import subprocess
 import ipaddress
 from datetime import datetime
 from pathlib import Path
@@ -603,26 +605,39 @@ Usage Restrictions:
         colors = self.theme_colors
         self.current_view = self._show_dashboard_view
         
+        # This was the missing header!
         header = tk.Frame(self.content_area, bg=colors['bg'])
         header.pack(fill=tk.X, pady=(0, 20))
         
-        tk.Label(header, text="Dashboard", font=('Segoe UI', 24, 'bold'),
+        # Dynamic Header based on role
+        is_admin = getattr(self, 'current_user_role', 'user') == 'admin'
+        title_text = "System Statistics Overview" if is_admin else "Dashboard"
+        
+        tk.Label(header, text=title_text, font=('Segoe UI', 24, 'bold'),
                 bg=colors['bg'], fg=colors['fg']).pack(anchor=tk.W)
         tk.Label(header, text=f"Welcome, {self.current_username}",
                 font=('Segoe UI', 12), bg=colors['bg'], fg=colors['fg_secondary']).pack(anchor=tk.W, pady=(5, 0))
         
-        # Summary stats
-        stats = self.db.get_dashboard_summary(self.current_user_id)
-        
         stats_frame = tk.Frame(self.content_area, bg=colors['bg'])
         stats_frame.pack(fill=tk.X, pady=(0, 20))
         
-        stat_cards = [
-            ("Total Scans", stats['total_scans'], "📋", colors['accent']),
-            ("Devices Found", stats['total_devices'], "💻", "#3b82f6"),
-            ("Critical/High", stats['total_high'], "🚫", colors['error']),
-            ("Medium Risk", stats['total_med'], "⚠️", colors['warning'])
-        ]
+        # Switch stats based on role
+        if is_admin:
+            stats = self.db.get_system_dashboard_summary()
+            stat_cards = [
+                ("Total Users", stats['total_users'], "👥", colors['success']),
+                ("Global Scans", stats['total_scans'], "🌍", colors['accent']),
+                ("All Devices", stats['total_devices'], "💻", "#3b82f6"),
+                ("Global Critical", stats['total_high'], "🚫", colors['error'])
+            ]
+        else:
+            stats = self.db.get_dashboard_summary(self.current_user_id)
+            stat_cards = [
+                ("Total Scans", stats['total_scans'], "📋", colors['accent']),
+                ("Devices Found", stats['total_devices'], "💻", "#3b82f6"),
+                ("Critical/High", stats['total_high'], "🚫", colors['error']),
+                ("Medium Risk", stats['total_med'], "⚠️", colors['warning'])
+            ]
         
         for title, value, icon, color in stat_cards:
             self._create_stat_card(stats_frame, title, value, icon, color)
@@ -895,10 +910,16 @@ Usage Restrictions:
                         risk_lvl = p.get('risk_level', 'Low')
                         risk_score = p.get('risk_score', 0)
                         
-                        if risk_lvl == 'Low' and not p.get('open_ports'):
-                            continue
-                        
-                        status_text = f"{risk_lvl} ({risk_score:.1f}/100)"
+                        # Format the status nicely with emojis
+                        if risk_score == 0 and risk_lvl == 'Low':
+                            status_text = "✅ Safe (0.0/100)"
+                        elif risk_lvl == 'Low':
+                            status_text = f"🟢 Low Risk ({risk_score:.1f}/100)"
+                        elif risk_lvl == 'Medium':
+                            status_text = f"🟡 Medium Risk ({risk_score:.1f}/100)"
+                        else:
+                            status_text = f"🔴 High Risk ({risk_score:.1f}/100)"
+                            
                         tag = 'oddrow' if idx % 2 == 0 else 'evenrow'
                         
                         self.device_tree.insert("", tk.END, values=(
@@ -925,7 +946,7 @@ Usage Restrictions:
         tk.Label(header, text="Scan History", font=('Segoe UI', 24, 'bold'),
                 bg=colors['bg'], fg=colors['fg']).pack(anchor=tk.W)
         
-        # Search bar
+        # Search bar and Action Buttons
         search_frame = tk.Frame(self.content_area, bg=colors['bg'])
         search_frame.pack(fill=tk.X, pady=(0, 15))
         
@@ -935,6 +956,21 @@ Usage Restrictions:
         search_var = tk.StringVar()
         search_ent = ttk.Entry(search_frame, width=50)
         search_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=6)
+        
+        # Function to safely open the reports directory in the OS file explorer
+        def open_reports_folder():
+            reports_dir = os.path.join(os.getcwd(), "reports")
+            os.makedirs(reports_dir, exist_ok=True) # Ensure folder exists
+            
+            if platform.system() == "Windows":
+                os.startfile(reports_dir)
+            elif platform.system() == "Darwin": # macOS
+                subprocess.Popen(["open", reports_dir])
+            else: # Linux
+                subprocess.Popen(["xdg-open", reports_dir])
+                
+        ttk.Button(search_frame, text="📁 Open Reports Folder", style='Secondary.TButton',
+                  command=open_reports_folder).pack(side=tk.RIGHT, padx=(10, 0))
         
         # History table
         columns = ("Date", "Type", "Target", "Devices", "High", "Medium")

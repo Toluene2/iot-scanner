@@ -5,7 +5,7 @@ Fingerprinting Module - Identifies device types via MAC OUI, banner grabbing, an
 import logging
 import socket
 import requests
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional
 from utils.config import MAC_OUI_DATABASE, SCAN_CONFIG, IOT_DEVICE_SIGNATURES
 import struct
 import threading
@@ -225,7 +225,7 @@ class FingerprintingModule:
         
         return result
 
-    def grab_all_banners(self, hosts_with_ports: Dict, stop_event: threading.Event = None) -> Dict:
+    def grab_all_banners(self, hosts_with_ports: Dict, stop_event: Optional[threading.Event] = None) -> Dict:
         """
         Grab banners from all open ports on all hosts.
         Critical for mobile hotspot environments where MAC identification fails.
@@ -416,7 +416,7 @@ class FingerprintingModule:
         
         return discovered_devices
 
-    def identify_device_type(self, mac: str, banners: Dict, host_info: Dict = None) -> Dict[str, str]:
+    def identify_device_type(self, mac: str, banners: Dict, host_info: Optional[Dict] = None) -> Dict[str, str]:
         """
         Identify device type based on MAC OUI, service banners, and Nmap info.
         
@@ -501,7 +501,7 @@ class FingerprintingModule:
                 
         return False
 
-    def run_full_fingerprinting(self, hosts_with_ports: Dict, stop_event: threading.Event = None) -> Dict:
+    def run_full_fingerprinting(self, hosts_with_ports: Dict, stop_event: Optional[threading.Event] = None) -> Dict:
         """
         Execute full fingerprinting workflow.
         Uses multiple fallback methods for identification (MAC -> Banner -> Hostname).
